@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game Visualization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #222;
+            color: white;
+        }
+
+        #game-container {
+            position: relative;
+            margin: 20px auto;
+            width: 600px;
+            height: 400px;
+            background: black;
+            border: 2px solid white;
+        }
+
+        .snake {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: green;
+        }
+
+        .food {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: red;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Snake Game</h1>
+    <p>Score: <span id="score">0</span></p>
+    <div id="game-container"></div>
+    <script>
+        ;// 初期設定
+        const gridSize = 20;
+        const width = 600;
+        const height = 400;
+
+        let score = 0;
+        let direction = "RIGHT"; // 初期の方向
+        let nextDirection = "RIGHT"; // 次に変更する方向
+
+        // 初期状態
+        let snake = [
+            { x: 100, y: 100 },
+            { x: 80, y: 100 },
+            { x: 60, y: 100 }
+        ];
+        let food = { x: 200, y: 200 };
+
+        // ゲームコンテナを取得
+        const gameContainer = document.getElementById("game-container");
+        const scoreDisplay = document.getElementById("score");
+
+        // キーボード操作のリスナーを追加
+        document.addEventListener("keydown", event => {
+            switch (event.key) {
+                case "ArrowUp":
+                    if (direction !== "DOWN") nextDirection = "UP";
+                    break;
+                case "ArrowDown":
+                    if (direction !== "UP") nextDirection = "DOWN";
+                    break;
+                case "ArrowLeft":
+                    if (direction !== "RIGHT") nextDirection = "LEFT";
+                    break;
+                case "ArrowRight":
+                    if (direction !== "LEFT") nextDirection = "RIGHT";
+                    break;
+            }
+        });
+
+        // スネークと食べ物を描画する関数
+        function renderGame() {
+            gameContainer.innerHTML = ""; // 既存の描画をクリア
+
+            // 蛇を描画
+            snake.forEach(segment => {
+                const segmentDiv = document.createElement("div");
+                segmentDiv.classList.add("snake");
+                segmentDiv.style.left = `${segment.x}px`;
+                segmentDiv.style.top = `${segment.y}px`;
+                gameContainer.appendChild(segmentDiv);
+            });
+
+            // 食べ物を描画
+            const foodDiv = document.createElement("div");
+            foodDiv.classList.add("food");
+            foodDiv.style.left = `${food.x}px`;
+            foodDiv.style.top = `${food.y}px`;
+            gameContainer.appendChild(foodDiv);
+
+            // スコアを更新
+            scoreDisplay.textContent = score;
+        }
+
+        // ゲームロジック
+        function updateGame() {
+            direction = nextDirection; // 次の方向に更新
+
+            // 蛇の移動
+            const head = { ...snake[0] }; // 現在の頭の位置をコピー
+            switch (direction) {
+                case "UP":
+                    head.y -= gridSize;
+                    break;
+                case "DOWN":
+                    head.y += gridSize;
+                    break;
+                case "LEFT":
+                    head.x -= gridSize;
+                    break;
+                case "RIGHT":
+                    head.x += gridSize;
+                    break;
+            }
+            snake.unshift(head); // 新しい頭を追加
+
+            // 食べ物を食べた場合
+            if (head.x === food.x && head.y === food.y) {
+                score += 10;
+                food.x = Math.floor(Math.random() * (width / gridSize)) * gridSize;
+                food.y = Math.floor(Math.random() * (height / gridSize)) * gridSize;
+            } else {
+                snake.pop(); // 尾を削除
+            }
+
+            // 壁に衝突した場合
+            if (head.x < 0 || head.x >= width || head.y < 0 || head.y >= height) {
+                alert("Game Over!");
+                resetGame();
+            }
+
+            // 自分自身に衝突した場合
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    alert("Game Over!");
+                    resetGame();
+                }
+            }
+        }
+
+        // ゲームをリセット
+        function resetGame() {
+            snake = [
+                { x: 100, y: 100 },
+                { x: 80, y: 100 },
+                { x: 60, y: 100 }
+            ];
+            food = { x: 200, y: 200 };
+            score = 0;
+            direction = "RIGHT";
+            nextDirection = "RIGHT";
+        }
+
+        // メインループ
+        function gameLoop() {
+            updateGame();
+            renderGame();
+            setTimeout(gameLoop, 100); // ゲーム速度を調整
+        }
+
+        // ゲーム開始
+        gameLoop();
+
+    </script>
+</body>
+
+</html>
